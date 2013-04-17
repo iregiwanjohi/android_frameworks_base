@@ -3142,59 +3142,59 @@ public final class Settings {
         public static final String NETWORK_TRAFFIC_AUTOHIDE = "network_traffic_autohide";
 
        /**
-	* Show or hide clock
-	* 0 - hide
-	* 1 - show (default)
-	* @hide
-	*/
+        * Show or hide clock
+        * 0 - hide
+        * 1 - show (default)
+        * @hide
+        */
         public static final String STATUS_BAR_CLOCK = "status_bar_clock";
 
        /**
-	* AM/PM Style for clock options
-	* 0 - Normal AM/PM
-	* 1 - Small AM/PM
-	* 2 - No AM/PM
-	* @hide
-	*/
+        * AM/PM Style for clock options
+        * 0 - Normal AM/PM
+        * 1 - Small AM/PM
+        * 2 - No AM/PM
+        * @hide
+        */
         public static final String STATUSBAR_CLOCK_AM_PM_STYLE = "statusbar_clock_am_pm_style";
 
        /**
-	* Style of clock
-	* 0 - Hide Clock
-	* 1 - Right Clock
-	* 2 - Center Clock
-	* @hide
-	*/
+        * Style of clock
+        * 0 - Hide Clock
+        * 1 - Right Clock
+        * 2 - Center Clock
+        * @hide
+        */
         public static final String STATUSBAR_CLOCK_STYLE = "statusbar_clock_style";
 
        /**
-	* Setting for clock color
-	* @hide
-	*/
+        * Setting for clock color
+        * @hide
+        */
         public static final String STATUSBAR_CLOCK_COLOR = "statusbar_clock_color";
 
        /**
-	* @hide
-	* Shows custom date before clock time
-	* 0 - No Date
-	* 1 - Small Date
-	* 2 - Normal Date
-	*/
+        * @hide
+        * Shows custom date before clock time
+        * 0 - No Date
+        * 1 - Small Date
+        * 2 - Normal Date
+        */
         public static final String STATUSBAR_CLOCK_DATE_DISPLAY = "statusbar_clock_date_display";
 
        /**
-	* @hide
-	* Sets the date string style
-	* 0 - Regular style
-	* 1 - Lowercase
-	* 2 - Uppercase
-	*/
+        * @hide
+        * Sets the date string style
+        * 0 - Regular style
+        * 1 - Lowercase
+        * 2 - Uppercase
+        */
         public static final String STATUSBAR_CLOCK_DATE_STYLE = "statusbar_clock_date_style";
 
        /**
-	* @hide
-	* Stores the java DateFormat string for the date
-	*/
+        * @hide
+        * Stores the java DateFormat string for the date
+        */
         public static final String STATUSBAR_CLOCK_DATE_FORMAT = "statusbar_clock_date_format";
 
         /**
@@ -3203,7 +3203,16 @@ public final class Settings {
          */
         public static final String NETWORK_TRAFFIC_AUTOHIDE_THRESHOLD = "network_traffic_autohide_threshold";
 
-	/**
+        /**
+         * MediaScanner behavior on boot.
+         * 0 = enabled
+         * 1 = ask (notification)
+         * 2 = disabled
+         * @hide
+         */
+         public static final String MEDIA_SCANNER_ON_BOOT = "media_scanner_on_boot";
+
+        /**
          * Whether to prevent loud volume levels when headset is first plugged in.
          * @hide
          */
