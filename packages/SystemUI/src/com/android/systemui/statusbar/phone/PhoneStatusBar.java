@@ -272,6 +272,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
     int mIconHPadding = -1;
     Display mDisplay;
     Point mCurrentDisplaySize = new Point();
+    int mCurrentDensity;
 
     StatusBarWindowView mStatusBarWindow;
     PhoneStatusBarView mStatusBarView;
@@ -644,6 +645,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         updateDisplaySize();
         mScrimSrcModeEnabled = mContext.getResources().getBoolean(
                 R.bool.config_status_bar_scrim_behind_use_src);
+        mCurrentDensity = mContext.getResources().getConfiguration().densityDpi;
         super.start(); // calls createAndAddWindows()
 
         mMediaSessionManager
@@ -3492,6 +3494,15 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
             mQSPanel.updateResources();
         }
 
+        // detect density change
+        int density = res.getConfiguration().densityDpi;
+        if (density != mCurrentDensity) {
+            mCurrentDensity = density;
+            recreateStatusBar(true);
+            setTakenSpace();
+            return;
+        }
+		
         loadDimens();
         mLinearOutSlowIn = AnimationUtils.loadInterpolator(
                 mContext, android.R.interpolator.linear_out_slow_in);

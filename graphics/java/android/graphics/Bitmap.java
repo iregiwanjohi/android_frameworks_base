@@ -23,6 +23,8 @@ import android.os.Trace;
 import android.util.DisplayMetrics;
 import dalvik.system.VMRuntime;
 
+import com.android.internal.util.liquid.DensityUtils;
+
 import java.io.OutputStream;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -86,24 +88,17 @@ public final class Bitmap implements Parcelable {
 
     private static volatile Matrix sScaleMatrix;
 
-    private static volatile int sDefaultDensity = -1;
-
     /**
      * For backwards compatibility, allows the app layer to change the default
      * density when running old apps.
      * @hide
      */
     public static void setDefaultDensity(int density) {
-        sDefaultDensity = density;
+        // Ignore
     }
 
     static int getDefaultDensity() {
-        if (sDefaultDensity >= 0) {
-            return sDefaultDensity;
-        }
-        //noinspection deprecation
-        sDefaultDensity = DisplayMetrics.DENSITY_DEVICE;
-        return sDefaultDensity;
+        return DensityUtils.getCurrentDensity();
     }
 
     /**
