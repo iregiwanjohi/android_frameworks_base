@@ -1,7 +1,7 @@
 package com.android.systemui.liquid;
 
 import com.android.internal.util.liquid.SpamFilter.SpamContract.NotificationTable;
-import com.android.internal.util.liuiqd.SpamFilter.SpamContract.PackageTable;
+import com.android.internal.util.liquid.SpamFilter.SpamContract.PackageTable;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

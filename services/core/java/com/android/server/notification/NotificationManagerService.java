@@ -93,9 +93,9 @@ import android.widget.Toast;
 
 import com.android.internal.R;
 import com.android.internal.util.FastXmlSerializer;
-import com.android.internal.util.cm.SpamFilter;
-import com.android.internal.util.cm.SpamFilter.SpamContract.NotificationTable;
-import com.android.internal.util.cm.SpamFilter.SpamContract.PackageTable;
+import com.android.internal.util.liquid.SpamFilter;
+import com.android.internal.util.liquid.SpamFilter.SpamContract.NotificationTable;
+import com.android.internal.util.liquid.SpamFilter.SpamContract.PackageTable;
 import com.android.server.EventLogTags;
 import com.android.server.SystemService;
 import com.android.server.lights.Light;
