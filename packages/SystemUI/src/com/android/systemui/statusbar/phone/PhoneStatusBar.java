@@ -424,7 +424,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
                     resolver, Settings.System.SCREEN_BRIGHTNESS_MODE, 0) ==
                     Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC;
             mBrightnessControl = !autoBrightness && Settings.System.getInt(
-                    resolver, Settings.System.STATUS_BAR_BRIGHTNESS_CONTROL, 1) == 1;
+                    resolver, Settings.System.STATUS_BAR_BRIGHTNESS_CONTROL, 0) == 1;
         }
     }
 
@@ -2726,19 +2726,8 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         }
         if (mBrightnessChanged && upOrCancel) {
             mBrightnessChanged = false;
-            if (mJustPeeked) {
-                /**
-                 * if we were just peeking, eat the event and collapse the status bar, otherwise
-                 * the event gets passed down and a full expand might happen.
-                 */
+            if (mJustPeeked && mExpandedVisible) {
                 mNotificationPanel.fling(10, false);
-                if (mExpandedVisible) {
-                    mExpandedVisible = false;
-                    visibilityChanged(false);
-                    setInteracting(StatusBarManager.WINDOW_STATUS_BAR, false);
-                }
-                disable(mDisabledUnmodified, true /* animate */);
-                return true;
             }
         }
         return false;
@@ -2877,6 +2866,13 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
             // send updated sysui visibility to window manager
             notifyUiVisibilityChanged(mSystemUiVisibility);
         }
+    }
+
+    @Override  // CommandQueue
+    public void setAutoRotate(boolean enabled) {
+        Settings.System.putInt(mContext.getContentResolver(),
+                Settings.System.ACCELEROMETER_ROTATION,
+                enabled ? 1 : 0);
     }
 
     private int computeBarMode(int oldVis, int newVis, BarTransitions transitions,
