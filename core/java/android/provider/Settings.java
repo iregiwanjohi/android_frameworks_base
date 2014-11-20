@@ -2941,7 +2941,6 @@ public final class Settings {
         public static final String EGG_MODE = "egg_mode";
 
         /**
-
          * Height of navigation bar buttons
          * @hide
          */
@@ -3167,7 +3166,6 @@ public final class Settings {
             PHONE_BLACKLIST_PRIVATE_NUMBER_MODE,
             PHONE_BLACKLIST_UNKNOWN_NUMBER_MODE,
             PHONE_BLACKLIST_REGEX_ENABLED,
-            STATUS_BAR_SHOW_BATTERY_PERCENT,
         };
 
         /**
