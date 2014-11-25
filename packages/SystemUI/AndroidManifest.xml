@@ -371,7 +371,7 @@
         <provider android:name=".liquid.SpamMessageProvider"
                   android:permission="android.permission.INTERACT_ACROSS_USERS_FULL"
                   android:exported="true"
-                  android:authorities="com.liquid.spam" />
+                  android:authorities="com.liquidsmooth.spam" />
 
     </application>
 </manifest>
