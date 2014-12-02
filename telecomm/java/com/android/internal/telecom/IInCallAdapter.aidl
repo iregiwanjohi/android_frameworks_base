@@ -59,6 +59,4 @@ oneway interface IInCallAdapter {
     void turnOnProximitySensor();
 
     void turnOffProximitySensor(boolean screenOnImmediately);
-
-    void switchToOtherActiveSub(String sub, boolean retainLch);
 }

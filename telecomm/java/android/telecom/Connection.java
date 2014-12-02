@@ -74,7 +74,6 @@ public abstract class Connection {
                 Connection c, String callerDisplayName, int presentation) {}
         public void onVideoStateChanged(Connection c, int videoState) {}
         public void onDisconnected(Connection c, DisconnectCause disconnectCause) {}
-        public void onSsNotificationData(int type, int code) {}
         public void onPostDialWait(Connection c, String remaining) {}
         public void onRingbackRequested(Connection c, boolean ringback) {}
         public void onDestroyed(Connection c) {}
@@ -86,7 +85,6 @@ public abstract class Connection {
         public void onConferenceableConnectionsChanged(
                 Connection c, List<Connection> conferenceableConnections) {}
         public void onConferenceChanged(Connection c, Conference conference) {}
-        public void onPhoneAccountChanged(Connection c, PhoneAccountHandle pHandle) {}
     }
 
     /** @hide */
@@ -486,7 +484,6 @@ public abstract class Connection {
     private DisconnectCause mDisconnectCause;
     private Conference mConference;
     private ConnectionService mConnectionService;
-    private PhoneAccountHandle mPhoneAccountHandle = null;
 
     /**
      * Create a new Connection.
@@ -789,14 +786,6 @@ public abstract class Connection {
         }
     }
 
-    /** @hide */
-    public final void setSsNotificationData(int type, int code) {
-        Log.d(this, "setSsNotificationData = "+ type +" "+ code);
-        for (Listener l : mListeners) {
-            l.onSsNotificationData(type, code);
-        }
-    }
-
     /**
      * TODO: Needs documentation.
      */
@@ -894,23 +883,6 @@ public abstract class Connection {
     }
 
     /**
-     * @hide.
-     */
-    public final void setPhoneAccountHandle(PhoneAccountHandle pHandle) {
-        mPhoneAccountHandle = pHandle;
-        for (Listener l : mListeners) {
-            l.onPhoneAccountChanged(this, pHandle);
-        }
-    }
-
-    /**
-     * @hide.
-     */
-    public final PhoneAccountHandle getPhoneAccountHandle() {
-        return mPhoneAccountHandle;
-    }
-
-    /*
      * @hide
      */
     public final void setConnectionService(ConnectionService connectionService) {
@@ -999,18 +971,6 @@ public abstract class Connection {
      * Notifies this Connection of a request to stop any currently playing DTMF tones.
      */
     public void onStopDtmfTone() {}
-
-    /**
-     * Notifies this to set local call hold.
-     * {@hide}
-     */
-    public void setLocalCallHold(int lchState) {}
-
-    /**
-     * Notifies this to set active subscription.
-     * {@hide}
-     */
-    public void setActiveSubscription() {}
 
     /**
      * Notifies this Connection of a request to disconnect.

@@ -121,14 +121,6 @@ final class RemoteConnectionService {
         }
 
         @Override
-        public void setDisconnectedWithSsNotification(String callId, int disconnectCause,
-                String disconnectMessage, int type, int code) {
-            findConnectionForAction(callId, "setDisconnectedWithSsNotification")
-                    .setDisconnectedWithSsNotification(disconnectCause, disconnectMessage,
-                            type, code);
-        }
-
-        @Override
         public void setOnHold(String callId) {
             if (mConnectionById.containsKey(callId)) {
                 findConnectionForAction(callId, "setOnHold")
@@ -293,12 +285,6 @@ final class RemoteConnectionService {
                 findConferenceForAction(callId, "setConferenceableConnections")
                         .setConferenceableConnections(conferenceable);
             }
-        }
-
-        @Override
-        public void setPhoneAccountHandle(String callId, PhoneAccountHandle pHandle) {
-            findConnectionForAction(callId, "setPhoneAccountHandle")
-                    .setPhoneAccountHandle(pHandle);
         }
     };
 

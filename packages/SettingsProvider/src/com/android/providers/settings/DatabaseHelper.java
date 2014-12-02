@@ -81,9 +81,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TABLE_SECURE = "secure";
     private static final String TABLE_GLOBAL = "global";
 
-    //Maximum number of phones
-    private static final int MAX_PHONE_COUNT = 3;
-
     static {
         mValidTables.add(TABLE_SYSTEM);
         mValidTables.add(TABLE_SECURE);
@@ -2577,7 +2574,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             // Set the preferred network mode to target desired value or Default
             // value defined in RILConstants
             int type;
-            int phoneCount = TelephonyManager.getDefault().getPhoneCount();
             type = SystemProperties.getInt("ro.telephony.default_network",
                         RILConstants.PREFERRED_NETWORK_MODE);
             loadSetting(stmt, Settings.Global.PREFERRED_NETWORK_MODE, type);

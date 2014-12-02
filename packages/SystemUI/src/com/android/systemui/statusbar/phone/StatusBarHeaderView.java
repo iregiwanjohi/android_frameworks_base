@@ -26,7 +26,6 @@ import android.graphics.Outline;
 import android.graphics.Rect;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
-import android.telephony.TelephonyManager;
 import android.util.AttributeSet;
 import android.util.MathUtils;
 import android.util.TypedValue;

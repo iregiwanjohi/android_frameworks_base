@@ -387,11 +387,6 @@ public final class Call {
     private String mRemainingPostDialSequence;
     private InCallService.VideoCall mVideoCall;
     private Details mDetails;
-    private int mNotificationType;
-    private int mNotificationCode;
-
-    /** {@hide} */
-    public boolean mIsActiveSub = false;
 
     /**
      * Obtains the post-dial sequence remaining to be emitted by this {@code Call}, if any.
@@ -401,16 +396,6 @@ public final class Call {
      */
     public String getRemainingPostDialSequence() {
         return mRemainingPostDialSequence;
-    }
-
-    /** @hide */
-    public int getNotificationType() {
-        return mNotificationType;
-    }
-
-    /** @hide */
-    public int getNotificationCode() {
-        return mNotificationCode;
     }
 
     /**
@@ -648,12 +633,11 @@ public final class Call {
     }
 
     /** {@hide} */
-    Call(Phone phone, String telecomCallId, InCallAdapter inCallAdapter, boolean isActiveSub) {
+    Call(Phone phone, String telecomCallId, InCallAdapter inCallAdapter) {
         mPhone = phone;
         mTelecomCallId = telecomCallId;
         mInCallAdapter = inCallAdapter;
         mState = STATE_NEW;
-        mIsActiveSub = isActiveSub;
     }
 
     /** {@hide} */
@@ -683,9 +667,6 @@ public final class Call {
             mDetails = details;
         }
 
-        mNotificationType = parcelableCall.getNotificationType();
-        mNotificationCode = parcelableCall.getNotificationCode();
-
         boolean cannedTextResponsesChanged = false;
         if (mCannedTextResponses == null && parcelableCall.getCannedSmsResponses() != null
                 && !parcelableCall.getCannedSmsResponses().isEmpty()) {
@@ -699,10 +680,9 @@ public final class Call {
         }
 
         int state = stateFromParcelableCallState(parcelableCall.getState());
-        boolean stateChanged = (mState != state) || (mIsActiveSub != parcelableCall.mIsActiveSub);
+        boolean stateChanged = mState != state;
         if (stateChanged) {
             mState = state;
-            mIsActiveSub = parcelableCall.mIsActiveSub;
         }
 
         String parentId = parcelableCall.getParentCallId();

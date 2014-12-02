@@ -64,10 +64,6 @@ public final class RemoteConnection {
                 RemoteConnection connection,
                 DisconnectCause disconnectCause) {}
 
-        /** @hide */
-        public void setDisconnectedWithSsNotification(RemoteConnection connection,
-                int disconnectCause, String disconnectMessage, int type, int code) {}
-
         /**
          * Invoked when this {@code RemoteConnection} is requesting ringback. See
          * {@link #isRingbackRequested()}.
@@ -191,11 +187,6 @@ public final class RemoteConnection {
         public void onConferenceChanged(
                 RemoteConnection connection,
                 RemoteConference conference) {}
-
-        /** @hide */
-        public void setPhoneAccountHandle(
-                RemoteConnection connection,
-                PhoneAccountHandle pHandle) {}
     }
 
     /** {@hide} */
@@ -771,15 +762,6 @@ public final class RemoteConnection {
         }
     }
 
-    /** @hide */
-   public void setDisconnectedWithSsNotification(int disconnectCause,
-                String disconnectMessage, int type, int code) {
-        for (Callback c : mCallbacks) {
-            c.setDisconnectedWithSsNotification(this, disconnectCause,
-                    disconnectMessage, type, code);
-        }
-    }
-
     /**
      * @hide
      */
@@ -901,13 +883,6 @@ public final class RemoteConnection {
             for (Callback c : mCallbacks) {
                 c.onConferenceChanged(this, conference);
             }
-        }
-    }
-
-    /** @hide */
-    void setPhoneAccountHandle(PhoneAccountHandle pHandle) {
-        for (Callback c : mCallbacks) {
-            c.setPhoneAccountHandle(this, pHandle);
         }
     }
 

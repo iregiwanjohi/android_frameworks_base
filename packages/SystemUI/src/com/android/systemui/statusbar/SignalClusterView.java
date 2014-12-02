@@ -1,7 +1,4 @@
 /*
- * Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
- * Not a Contribution.
- *
  * Copyright (C) 2011 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,10 +43,9 @@ public class SignalClusterView
 
     private boolean mVpnVisible = false;
     private boolean mWifiVisible = false;
-    private int mWifiStrengthId = 0, mWifiActivityId = 0;
+    private int mWifiStrengthId = 0;
     private boolean mMobileVisible = false;
-    private int mMobileStrengthId = 0, mMobileTypeId = 0, mMobileActivityId = 0;
-    private int mNoSimIconId = 0;
+    private int mMobileStrengthId = 0, mMobileTypeId = 0;
     private boolean mIsAirplaneMode = false;
     private int mAirplaneIconId = 0;
     private String mWifiDescription, mMobileDescription, mMobileTypeDescription;
@@ -57,8 +53,7 @@ public class SignalClusterView
     private boolean mIsMobileTypeIconWide;
 
     ViewGroup mWifiGroup, mMobileGroup;
-    ImageView mVpn, mWifi, mMobile, mMobileType, mAirplane, mNoSimSlot;
-    ImageView mWifiActivity, mMobileActivity;
+    ImageView mVpn, mWifi, mMobile, mMobileType, mAirplane;
     View mWifiAirplaneSpacer;
     View mWifiSignalSpacer;
 
@@ -102,12 +97,9 @@ public class SignalClusterView
         mVpn            = (ImageView) findViewById(R.id.vpn);
         mWifiGroup      = (ViewGroup) findViewById(R.id.wifi_combo);
         mWifi           = (ImageView) findViewById(R.id.wifi_signal);
-        mWifiActivity   = (ImageView) findViewById(R.id.wifi_inout);
         mMobileGroup    = (ViewGroup) findViewById(R.id.mobile_combo);
         mMobile         = (ImageView) findViewById(R.id.mobile_signal);
-        mMobileActivity = (ImageView) findViewById(R.id.mobile_inout);
         mMobileType     = (ImageView) findViewById(R.id.mobile_type);
-        mNoSimSlot      = (ImageView) findViewById(R.id.no_sim);
         mAirplane       = (ImageView) findViewById(R.id.airplane);
         mWifiAirplaneSpacer =         findViewById(R.id.wifi_airplane_spacer);
         mWifiSignalSpacer =           findViewById(R.id.wifi_signal_spacer);
@@ -120,12 +112,9 @@ public class SignalClusterView
         mVpn            = null;
         mWifiGroup      = null;
         mWifi           = null;
-        mWifiActivity   = null;
         mMobileGroup    = null;
         mMobile         = null;
-        mMobileActivity = null;
         mMobileType     = null;
-        mNoSimSlot      = null;
         mAirplane       = null;
 
         super.onDetachedFromWindow();
@@ -144,30 +133,25 @@ public class SignalClusterView
     }
 
     @Override
-    public void setWifiIndicators(boolean visible, int strengthIcon, int activityIcon,
-            String contentDescription) {
+    public void setWifiIndicators(boolean visible, int strengthIcon, String contentDescription) {
         mWifiVisible = visible;
         mWifiStrengthId = strengthIcon;
-        mWifiActivityId = activityIcon;
         mWifiDescription = contentDescription;
 
         apply();
     }
 
     @Override
-    public void setMobileDataIndicators(boolean visible, int strengthIcon,
-            int activityIcon, int typeIcon, String contentDescription,
-            String typeContentDescription, boolean roaming,
-            boolean isTypeIconWide, int noSimIcon) {
+    public void setMobileDataIndicators(boolean visible, int strengthIcon, int typeIcon,
+            String contentDescription, String typeContentDescription, boolean roaming,
+            boolean isTypeIconWide) {
         mMobileVisible = visible;
         mMobileStrengthId = strengthIcon;
-        mMobileActivityId = activityIcon;
         mMobileTypeId = typeIcon;
         mMobileDescription = contentDescription;
         mMobileTypeDescription = typeContentDescription;
         mRoaming = roaming;
         mIsMobileTypeIconWide = isTypeIconWide;
-        mNoSimIconId = noSimIcon;
 
         apply();
     }
@@ -199,16 +183,8 @@ public class SignalClusterView
             mWifi.setImageDrawable(null);
         }
 
-        if (mWifiActivity != null) {
-            mWifiActivity.setImageDrawable(null);
-        }
-
         if (mMobile != null) {
             mMobile.setImageDrawable(null);
-        }
-
-        if (mMobileActivity != null) {
-            mMobileActivity.setImageDrawable(null);
         }
 
         if (mMobileType != null) {
@@ -235,7 +211,6 @@ public class SignalClusterView
         if (DEBUG) Log.d(TAG, String.format("vpn: %s", mVpnVisible ? "VISIBLE" : "GONE"));
         if (mWifiVisible) {
             mWifi.setImageResource(mWifiStrengthId);
-            mWifiActivity.setImageResource(mWifiActivityId);
             mWifiGroup.setContentDescription(mWifiDescription);
             mWifiGroup.setVisibility(View.VISIBLE);
         } else {
@@ -243,17 +218,15 @@ public class SignalClusterView
         }
 
         if (DEBUG) Log.d(TAG,
-                String.format("wifi: %s sig=%d act=%d",
+                String.format("wifi: %s sig=%d",
                     (mWifiVisible ? "VISIBLE" : "GONE"),
-                    mWifiStrengthId, mWifiActivityId));
+                    mWifiStrengthId));
 
         if (mMobileVisible && !mIsAirplaneMode) {
             mMobile.setImageResource(mMobileStrengthId);
-            mMobileActivity.setImageResource(mMobileActivityId);
             mMobileType.setImageResource(mMobileTypeId);
             mMobileGroup.setContentDescription(mMobileTypeDescription + " " + mMobileDescription);
             mMobileGroup.setVisibility(View.VISIBLE);
-            mNoSimSlot.setImageResource(mNoSimIconId);
         } else {
             mMobileGroup.setVisibility(View.GONE);
         }
@@ -265,7 +238,7 @@ public class SignalClusterView
             mAirplane.setVisibility(View.GONE);
         }
 
-        if (mWifiVisible && ((mIsAirplaneMode) || (mNoSimIconId != 0))) {
+        if (mIsAirplaneMode && mWifiVisible) {
             mWifiAirplaneSpacer.setVisibility(View.VISIBLE);
         } else {
             mWifiAirplaneSpacer.setVisibility(View.GONE);
@@ -280,9 +253,9 @@ public class SignalClusterView
         mMobile.setPaddingRelative(mIsMobileTypeIconWide ? mWideTypeIconStartPadding : 0, 0, 0, 0);
 
         if (DEBUG) Log.d(TAG,
-                String.format("mobile: %s sig=%d act=%d typ=%d",
+                String.format("mobile: %s sig=%d typ=%d",
                     (mMobileVisible ? "VISIBLE" : "GONE"),
-                    mMobileStrengthId,  mMobileActivityId, mMobileTypeId));
+                    mMobileStrengthId, mMobileTypeId));
 
         mMobileType.setVisibility((mRoaming || mMobileTypeId != 0) ? View.VISIBLE : View.GONE);
     }

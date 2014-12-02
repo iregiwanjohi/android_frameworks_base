@@ -135,10 +135,6 @@ public final class PhoneCapabilities {
         if ((capabilities & VoWIFI) != 0) {
             builder.append(" VoWIFI");
         }
-        if ((capabilities & VOICE_PRIVACY) != 0) {
-            builder.append(" VOICE_PRIVACY");
-        }
-
         builder.append("]");
         return builder.toString();
     }

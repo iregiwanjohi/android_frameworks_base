@@ -74,8 +74,6 @@ public abstract class ConnectionService extends Service {
     private static final int MSG_ANSWER_VIDEO = 17;
     private static final int MSG_MERGE_CONFERENCE = 18;
     private static final int MSG_SWAP_CONFERENCE = 19;
-    private static final int MSG_SET_LOCAL_HOLD = 20;
-    private static final int MSG_SET_ACTIVE_SUB = 21;
 
     private static Connection sNullConnection;
 
@@ -87,8 +85,6 @@ public abstract class ConnectionService extends Service {
             new RemoteConnectionManager(this);
     private final List<Runnable> mPreInitializationConnectionRequests = new ArrayList<>();
     private final ConnectionServiceAdapter mAdapter = new ConnectionServiceAdapter();
-    private int mSsNotificationType = 0xFF;
-    private int mSsNotificationCode = 0xFF;
 
     private boolean mAreAccountsInitialized = false;
     private Conference sNullConference;
@@ -174,20 +170,6 @@ public abstract class ConnectionService extends Service {
         @Override
         public void stopDtmfTone(String callId) {
             mHandler.obtainMessage(MSG_STOP_DTMF_TONE, callId).sendToTarget();
-        }
-
-        @Override
-        public void setLocalCallHold(String callId, int lchState) {
-            SomeArgs args = SomeArgs.obtain();
-            args.arg1 = callId;
-            args.argi1 = lchState;
-            mHandler.obtainMessage(MSG_SET_LOCAL_HOLD, args).sendToTarget();
-        }
-
-        @Override
-        public void setActiveSubscription(String callId) {
-            Log.i(this, "setActiveSubscription %s", callId);
-            mHandler.obtainMessage(MSG_SET_ACTIVE_SUB, callId).sendToTarget();
         }
 
         @Override
@@ -314,20 +296,6 @@ public abstract class ConnectionService extends Service {
                 case MSG_STOP_DTMF_TONE:
                     stopDtmfTone((String) msg.obj);
                     break;
-                case MSG_SET_LOCAL_HOLD: {
-                    SomeArgs args = (SomeArgs) msg.obj;
-                    try {
-                        String callId = (String) args.arg1;
-                        int lchStatus = args.argi1;
-                        setLocalCallHold(callId, lchStatus);
-                    } finally {
-                        args.recycle();
-                    }
-                    break;
-                }
-                case MSG_SET_ACTIVE_SUB:
-                    setActiveSubscription((String) msg.obj);
-                    break;
                 case MSG_CONFERENCE: {
                     SomeArgs args = (SomeArgs) msg.obj;
                     try {
@@ -449,15 +417,7 @@ public abstract class ConnectionService extends Service {
         public void onDisconnected(Connection c, DisconnectCause disconnectCause) {
             String id = mIdByConnection.get(c);
             Log.d(this, "Adapter set disconnected %s", disconnectCause);
-            if (mSsNotificationType == 0xFF && mSsNotificationCode == 0xFF) {
-                mAdapter.setDisconnected(id, disconnectCause);
-            } else {
-                mAdapter.setDisconnectedWithSsNotification(id, disconnectCause.getCode(),
-                        disconnectCause.getReason(),
-                        mSsNotificationType, mSsNotificationCode);
-                mSsNotificationType = 0xFF;
-                mSsNotificationCode = 0xFF;
-            }
+            mAdapter.setDisconnected(id, disconnectCause);
         }
 
         @Override
@@ -544,19 +504,6 @@ public abstract class ConnectionService extends Service {
                 mAdapter.setIsConferenced(id, conferenceId);
             }
         }
-
-        @Override
-        public void onSsNotificationData(int type, int code) {
-            mSsNotificationType = type;
-            mSsNotificationCode = code;
-        }
-
-        @Override
-        public void onPhoneAccountChanged(Connection c, PhoneAccountHandle pHandle) {
-            String id = mIdByConnection.get(c);
-            Log.i(this, "Adapter onPhoneAccountChanged %s, %s", c, pHandle);
-            mAdapter.setPhoneAccountHandle(id, pHandle);
-        }
     };
 
     /** {@inheritDoc} */
@@ -612,7 +559,7 @@ public abstract class ConnectionService extends Service {
                 callId,
                 request,
                 new ParcelableConnection(
-                        getAccountHandle(request, connection),
+                        request.getAccountHandle(),
                         connection.getState(),
                         connection.getCallCapabilities(),
                         connection.getAddress(),
@@ -627,18 +574,6 @@ public abstract class ConnectionService extends Service {
                         connection.getStatusHints(),
                         connection.getDisconnectCause(),
                         createConnectionIdList(connection.getConferenceableConnections())));
-    }
-
-    /** @hide */
-    public PhoneAccountHandle getAccountHandle(
-            final ConnectionRequest request, Connection connection) {
-        PhoneAccountHandle pHandle = connection.getPhoneAccountHandle();
-        if (pHandle != null) {
-            Log.i(this, "getAccountHandle, return account handle from local, %s", pHandle);
-            return pHandle;
-        } else {
-            return request.getAccountHandle();
-        }
     }
 
     private void abort(String callId) {
@@ -713,16 +648,6 @@ public abstract class ConnectionService extends Service {
         } else {
             findConferenceForAction(callId, "stopDtmfTone").onStopDtmfTone();
         }
-    }
-
-    private void setLocalCallHold(String callId, int lchStatus) {
-        Log.d(this, "setLocalCallHold %s", callId);
-        findConnectionForAction(callId, "setLocalCallHold").setLocalCallHold(lchStatus);
-    }
-
-    private void setActiveSubscription(String callId) {
-        Log.d(this, "setActiveSubscription %s", callId);
-        findConnectionForAction(callId, "setActiveSubscription").setActiveSubscription();
     }
 
     private void conference(String callId1, String callId2) {
