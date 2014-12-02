@@ -26,10 +26,6 @@ import android.os.Parcelable;
  */
 public class VideoProfile implements Parcelable {
     /**
-     * "Unknown" video quality.
-     */
-    public static final int QUALITY_UNKNOWN = 0;
-    /**
      * "High" video quality.
      */
     public static final int QUALITY_HIGH = 1;

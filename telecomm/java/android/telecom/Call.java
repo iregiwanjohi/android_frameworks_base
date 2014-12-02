@@ -387,6 +387,8 @@ public final class Call {
     private String mRemainingPostDialSequence;
     private InCallService.VideoCall mVideoCall;
     private Details mDetails;
+    private int mNotificationType;
+    private int mNotificationCode;
 
     /** {@hide} */
     public boolean mIsActiveSub = false;
@@ -401,21 +403,22 @@ public final class Call {
         return mRemainingPostDialSequence;
     }
 
+    /** @hide */
+    public int getNotificationType() {
+        return mNotificationType;
+    }
+
+    /** @hide */
+    public int getNotificationCode() {
+        return mNotificationCode;
+    }
+
     /**
      * Instructs this {@link #STATE_RINGING} {@code Call} to answer.
      * @param videoState The video state in which to answer the call.
      */
     public void answer(int videoState) {
         mInCallAdapter.answerCall(mTelecomCallId, videoState);
-    }
-
-    /**
-     * Instructs this {@link #STATE_RINGING} {@code Call} to deflect.
-     * @param number The number to which the call will be deflected.
-     */
-    /** @hide */
-    public void deflectCall(String number) {
-        mInCallAdapter.deflectCall(mTelecomCallId, number);
     }
 
     /**
@@ -679,6 +682,9 @@ public final class Call {
         if (detailsChanged) {
             mDetails = details;
         }
+
+        mNotificationType = parcelableCall.getNotificationType();
+        mNotificationCode = parcelableCall.getNotificationCode();
 
         boolean cannedTextResponsesChanged = false;
         if (mCannedTextResponses == null && parcelableCall.getCannedSmsResponses() != null

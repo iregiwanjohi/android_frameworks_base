@@ -76,7 +76,6 @@ public abstract class ConnectionService extends Service {
     private static final int MSG_SWAP_CONFERENCE = 19;
     private static final int MSG_SET_LOCAL_HOLD = 20;
     private static final int MSG_SET_ACTIVE_SUB = 21;
-    private static final int MSG_DEFLECT = 22;
 
     private static Connection sNullConnection;
 
@@ -88,6 +87,8 @@ public abstract class ConnectionService extends Service {
             new RemoteConnectionManager(this);
     private final List<Runnable> mPreInitializationConnectionRequests = new ArrayList<>();
     private final ConnectionServiceAdapter mAdapter = new ConnectionServiceAdapter();
+    private int mSsNotificationType = 0xFF;
+    private int mSsNotificationCode = 0xFF;
 
     private boolean mAreAccountsInitialized = false;
     private Conference sNullConference;
@@ -135,14 +136,6 @@ public abstract class ConnectionService extends Service {
         @Override
         public void answer(String callId) {
             mHandler.obtainMessage(MSG_ANSWER, callId).sendToTarget();
-        }
-
-        @Override
-        public void deflect(String callId, String number) {
-            SomeArgs args = SomeArgs.obtain();
-            args.arg1 = callId;
-            args.arg2 = number;
-            mHandler.obtainMessage(MSG_DEFLECT, args).sendToTarget();
         }
 
         @Override
@@ -366,17 +359,6 @@ public abstract class ConnectionService extends Service {
                     }
                     break;
                 }
-                case MSG_DEFLECT: {
-                    SomeArgs args = (SomeArgs) msg.obj;
-                    try {
-                        String callId = (String) args.arg1;
-                        String number = (String) args.arg2;
-                        deflect(callId, number);
-                    } finally {
-                        args.recycle();
-                    }
-                    break;
-                }
                 default:
                     break;
             }
@@ -467,7 +449,15 @@ public abstract class ConnectionService extends Service {
         public void onDisconnected(Connection c, DisconnectCause disconnectCause) {
             String id = mIdByConnection.get(c);
             Log.d(this, "Adapter set disconnected %s", disconnectCause);
-            mAdapter.setDisconnected(id, disconnectCause);
+            if (mSsNotificationType == 0xFF && mSsNotificationCode == 0xFF) {
+                mAdapter.setDisconnected(id, disconnectCause);
+            } else {
+                mAdapter.setDisconnectedWithSsNotification(id, disconnectCause.getCode(),
+                        disconnectCause.getReason(),
+                        mSsNotificationType, mSsNotificationCode);
+                mSsNotificationType = 0xFF;
+                mSsNotificationCode = 0xFF;
+            }
         }
 
         @Override
@@ -518,13 +508,6 @@ public abstract class ConnectionService extends Service {
         }
 
         @Override
-        public void onCallPropertiesChanged(Connection c, int properties) {
-            String id = mIdByConnection.get(c);
-            Log.d(this, "properties: parcelableconnection: %x", properties);
-            mAdapter.setCallProperties(id, properties);
-        }
-
-        @Override
         public void onVideoProviderChanged(Connection c, Connection.VideoProvider videoProvider) {
             String id = mIdByConnection.get(c);
             mAdapter.setVideoProvider(id, videoProvider);
@@ -560,6 +543,12 @@ public abstract class ConnectionService extends Service {
                 }
                 mAdapter.setIsConferenced(id, conferenceId);
             }
+        }
+
+        @Override
+        public void onSsNotificationData(int type, int code) {
+            mSsNotificationType = type;
+            mSsNotificationCode = code;
         }
 
         @Override
@@ -613,11 +602,10 @@ public abstract class ConnectionService extends Service {
 
         Uri address = connection.getAddress();
         String number = address == null ? "null" : address.getSchemeSpecificPart();
-        Log.v(this, "createConnection, number: %s, state: %s, capabilities: %s, properties: 0x%x",
+        Log.v(this, "createConnection, number: %s, state: %s, capabilities: %s",
                 Connection.toLogSafePhoneNumber(number),
                 Connection.stateToString(connection.getState()),
-                PhoneCapabilities.toString(connection.getCallCapabilities()),
-                connection.getCallProperties());
+                PhoneCapabilities.toString(connection.getCallCapabilities()));
 
         Log.d(this, "createConnection, calling handleCreateConnectionSuccessful %s", callId);
         mAdapter.handleCreateConnectionComplete(
@@ -627,7 +615,6 @@ public abstract class ConnectionService extends Service {
                         getAccountHandle(request, connection),
                         connection.getState(),
                         connection.getCallCapabilities(),
-                        connection.getCallProperties(),
                         connection.getAddress(),
                         connection.getAddressPresentation(),
                         connection.getCallerDisplayName(),
@@ -667,11 +654,6 @@ public abstract class ConnectionService extends Service {
     private void answer(String callId) {
         Log.d(this, "answer %s", callId);
         findConnectionForAction(callId, "answer").onAnswer();
-    }
-
-    private void deflect(String callId, String number) {
-        Log.d(this, "deflect %s - %s", callId, number);
-        findConnectionForAction(callId, "deflect").onDeflect(number);
     }
 
     private void reject(String callId) {

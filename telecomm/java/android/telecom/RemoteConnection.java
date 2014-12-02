@@ -64,6 +64,10 @@ public final class RemoteConnection {
                 RemoteConnection connection,
                 DisconnectCause disconnectCause) {}
 
+        /** @hide */
+        public void setDisconnectedWithSsNotification(RemoteConnection connection,
+                int disconnectCause, String disconnectMessage, int type, int code) {}
+
         /**
          * Invoked when this {@code RemoteConnection} is requesting ringback. See
          * {@link #isRingbackRequested()}.
@@ -81,15 +85,6 @@ public final class RemoteConnection {
          * @param callCapabilities The new call capabilities of the {@code RemoteConnection}.
          */
         public void onCallCapabilitiesChanged(RemoteConnection connection, int callCapabilities) {}
-
-        /**
-         * Indicates that the call properties of this {@code RemoteConnection} have changed.
-         * See {@link #getCallProperties()}.
-         *
-         * @param connection The {@code RemoteConnection} invoking this method.
-         * @param callProperties The new call properties of the {@code RemoteConnection}.
-         */
-        public void onCallPropertiesChanged(RemoteConnection connection, int callProperties) {}
 
         /**
          * Invoked when the post-dial sequence in the outgoing {@code Connection} has reached a
@@ -226,8 +221,6 @@ public final class RemoteConnection {
             public void onCameraCapabilitiesChanged(
                     VideoProvider videoProvider,
                     CameraCapabilities cameraCapabilities) {}
-
-            public void onVideoQualityChanged(VideoProvider videoProvider, int videoQuality) {}
         }
 
         private final IVideoCallback mVideoCallbackDelegate = new IVideoCallback() {
@@ -275,13 +268,6 @@ public final class RemoteConnection {
             public void changeCameraCapabilities(CameraCapabilities cameraCapabilities) {
                 for (Listener l : mListeners) {
                     l.onCameraCapabilitiesChanged(VideoProvider.this, cameraCapabilities);
-                }
-            }
-
-            @Override
-            public void changeVideoQuality(int videoQuality) {
-                for (Listener l : mListeners) {
-                    l.onVideoQualityChanged(VideoProvider.this, videoQuality);
                 }
             }
 
@@ -409,7 +395,6 @@ public final class RemoteConnection {
     private boolean mRingbackRequested;
     private boolean mConnected;
     private int mCallCapabilities;
-    private int mCallProperties;
     private int mVideoState;
     private VideoProvider mVideoProvider;
     private boolean mIsVoipAudioMode;
@@ -492,14 +477,6 @@ public final class RemoteConnection {
      */
     public int getCallCapabilities() {
         return mCallCapabilities;
-    }
-
-    /**
-     * @return A bitmask of the properties of the {@code RemoteConnection}, as defined in
-     *         {@link CallProperties}.
-     */
-    public int getCallProperties() {
-        return mCallProperties;
     }
 
     /**
@@ -794,6 +771,15 @@ public final class RemoteConnection {
         }
     }
 
+    /** @hide */
+   public void setDisconnectedWithSsNotification(int disconnectCause,
+                String disconnectMessage, int type, int code) {
+        for (Callback c : mCallbacks) {
+            c.setDisconnectedWithSsNotification(this, disconnectCause,
+                    disconnectMessage, type, code);
+        }
+    }
+
     /**
      * @hide
      */
@@ -813,16 +799,6 @@ public final class RemoteConnection {
         mCallCapabilities = callCapabilities;
         for (Callback c : mCallbacks) {
             c.onCallCapabilitiesChanged(this, callCapabilities);
-        }
-    }
-
-    /**
-     * @hide
-     */
-    void setCallProperties(int callProperties) {
-        mCallProperties = callProperties;
-        for (Callback c : mCallbacks) {
-            c.onCallPropertiesChanged(this, callProperties);
         }
     }
 
