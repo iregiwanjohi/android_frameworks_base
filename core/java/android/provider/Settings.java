@@ -2071,6 +2071,13 @@ public final class Settings {
         public static final String STATUS_BAR_QUICK_QS_PULLDOWN = "status_bar_quick_qs_pulldown";
 
         /**
+         * Quick Settings Smart Pulldown
+         *
+         * @hide
+         */
+        public static final String QS_SMART_PULLDOWN = "qs_smart_pulldown";
+
+        /**
          * Control whether the process CPU usage meter should be shown.
          *
          * @deprecated Use {@link Global#SHOW_PROCESSES} instead
@@ -5589,13 +5596,8 @@ public final class Settings {
             UI_NIGHT_MODE,
             SLEEP_TIMEOUT,
             PRIVACY_GUARD_DEFAULT,
-<<<<<<< HEAD
             ADVANCED_REBOOT
-=======
-            PRIVACY_GUARD_NOTIFICATION,
-            ADVANCED_REBOOT,
             STATUS_BAR_LOCKED_ON_SECURE_KEYGUARD
->>>>>>> 69b5573... Frameworks: Do not allow to access quick settings on secure lockscreen - option (1/2)
         };
 
         /**
