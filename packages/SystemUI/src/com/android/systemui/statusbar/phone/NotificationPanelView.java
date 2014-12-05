@@ -21,12 +21,20 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
 import android.animation.ValueAnimator;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Configuration;
+import android.database.ContentObserver;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
+import android.os.Handler;
+import android.os.PowerManager;
+import android.os.UserHandle;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.MathUtils;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -38,6 +46,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.android.internal.widget.LockPatternUtils;
 import com.android.keyguard.KeyguardStatusView;
 import com.android.systemui.R;
 import com.android.systemui.qs.QSPanel;
@@ -66,6 +75,10 @@ public class NotificationPanelView extends PanelView implements
     private static final int DOZE_BACKGROUND_COLOR = 0xff000000;
     private static final int TAG_KEY_ANIM = R.id.scrim;
     private static final long DOZE_BACKGROUND_ANIM_DURATION = ScrimController.ANIMATION_DURATION;
+
+    private static final int ONE_FINGER_QS_INTERCEPT_OFF   = 0;
+    private static final int ONE_FINGER_QS_INTERCEPT_END   = 1;
+    private static final int ONE_FINGER_QS_INTERCEPT_START = 2;
 
     private KeyguardAffordanceHelper mAfforanceHelper;
     private StatusBarHeaderView mHeader;
@@ -169,8 +182,30 @@ public class NotificationPanelView extends PanelView implements
     private boolean mQsTouchAboveFalsingThreshold;
     private int mQsFalsingThreshold;
 
+    private Handler mHandler = new Handler();
+    private LockPatternUtils mLockPatternUtils;
+    private SettingsObserver mSettingsObserver;
+
+    private int mOneFingerQuickSettingsInterceptMode;
+    private int mQsSmartPullDown;
+    private boolean mStatusBarLockedOnSecureKeyguard;
+    private boolean mDoubleTapToSleepEnabled;
+    private int mStatusBarHeaderHeight;
+    private GestureDetector mDoubleTapGesture;
+
     public NotificationPanelView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        mSettingsObserver = new SettingsObserver(mHandler);
+        mLockPatternUtils = new LockPatternUtils(mContext);
+        mDoubleTapGesture = new GestureDetector(mContext, new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onDoubleTap(MotionEvent e) {
+                PowerManager pm = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
+                if(pm != null)
+                    pm.goToSleep(e.getEventTime());
+                return true;
+            }
+        });
     }
 
     public void setStatusBar(PhoneStatusBar bar) {
@@ -240,6 +275,7 @@ public class NotificationPanelView extends PanelView implements
                 getResources().getDimensionPixelSize(R.dimen.notification_scrim_wait_distance);
         mQsFalsingThreshold = getResources().getDimensionPixelSize(
                 R.dimen.qs_falsing_threshold);
+        mStatusBarHeaderHeight = getResources().getDimensionPixelSize(R.dimen.status_bar_header_height);
     }
 
     public void updateResources() {
@@ -298,11 +334,14 @@ public class NotificationPanelView extends PanelView implements
     @Override
     public void onAttachedToWindow() {
         mSecureCameraLaunchManager.create();
+        mSettingsObserver.observe();
+
     }
 
     @Override
     public void onDetachedFromWindow() {
         mSecureCameraLaunchManager.destroy();
+        mSettingsObserver.unobserve();
     }
 
     /**
@@ -582,6 +621,12 @@ public class NotificationPanelView extends PanelView implements
         if (mBlockTouches) {
             return false;
         }
+
+        if (mDoubleTapToSleepEnabled
+                && mStatusBarState == StatusBarState.KEYGUARD
+                && event.getY() < mStatusBarHeaderHeight) {
+            mDoubleTapGesture.onTouchEvent(event);
+        }
         resetDownStates(event);
         if ((!mIsExpanding || mHintAnimationRunning)
                 && !mQsExpanded
@@ -591,9 +636,13 @@ public class NotificationPanelView extends PanelView implements
         if (mOnlyAffordanceInThisMotion) {
             return true;
         }
+
+        boolean isQSEventBlocked = mLockPatternUtils.isSecure()
+                && mStatusBarLockedOnSecureKeyguard && mKeyguardShowing;
+
         if (event.getActionMasked() == MotionEvent.ACTION_DOWN && getExpandedFraction() == 1f
                 && mStatusBar.getBarState() != StatusBarState.KEYGUARD && !mQsExpanded
-                && mQsExpansionEnabled) {
+                && mQsExpansionEnabled && !isQSEventBlocked) {
 
             // Down in the empty area while fully expanded - go to QS.
             mQsTracking = true;
@@ -603,7 +652,7 @@ public class NotificationPanelView extends PanelView implements
             mInitialTouchY = event.getX();
             mInitialTouchX = event.getY();
         }
-        if (mExpandedHeight != 0) {
+        if (mExpandedHeight != 0 && !isQSEventBlocked) {
             handleQsDown(event);
         }
         if (!mTwoFingerQsExpand && mQsTracking) {
@@ -623,10 +672,22 @@ public class NotificationPanelView extends PanelView implements
         boolean twoFingerQsEvent = mTwoFingerQsExpandPossible
                 && (event.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN
                 && event.getPointerCount() == 2);
-        boolean oneFingerQsOverride = event.getActionMasked() == MotionEvent.ACTION_DOWN
+
+        boolean oneFingerQsOverride =
+                mOneFingerQuickSettingsInterceptMode > ONE_FINGER_QS_INTERCEPT_OFF
+                && event.getActionMasked() == MotionEvent.ACTION_DOWN
                 && shouldQuickSettingsIntercept(event.getX(), event.getY(), -1, false);
+
+        if (mQsSmartPullDown == 1 && !mStatusBar.hasActiveClearableNotifications()
+                || mQsSmartPullDown == 2 && !mStatusBar.hasActiveVisibleNotifications()
+                || (mQsSmartPullDown == 3 && (!mStatusBar.hasActiveVisibleNotifications()
+                        || !mStatusBar.hasActiveClearableNotifications()))) {
+            oneFingerQsOverride = true;
+        }
+
         if ((twoFingerQsEvent || oneFingerQsOverride)
-                && event.getY(event.getActionIndex()) < mStatusBarMinHeight) {
+                && event.getY(event.getActionIndex()) < mStatusBarMinHeight
+                && !isQSEventBlocked) {
             mTwoFingerQsExpand = true;
             requestPanelHeightUpdate();
 
@@ -1200,14 +1261,20 @@ public class NotificationPanelView extends PanelView implements
                 && y >= header.getTop() && y <= header.getBottom();
 
         final float w = getMeasuredWidth();
-        float region = (w * (1.f/3.f)); // TODO overlay region fraction?
-        final boolean showQsOverride = isLayoutRtl() ? (x < region) : (w - region < x)
-                && mStatusBarState == StatusBarState.SHADE;
+        float region = (w * (1.f/4.f)); // TODO overlay region fraction?
+
+        boolean showQsOverride = false;
+
+        if (mOneFingerQuickSettingsInterceptMode == ONE_FINGER_QS_INTERCEPT_END) {
+            showQsOverride = isLayoutRtl() ? (x < region) : (w - region < x);
+        } else if (mOneFingerQuickSettingsInterceptMode == ONE_FINGER_QS_INTERCEPT_START) {
+            showQsOverride = isLayoutRtl() ? (w - region < x) : (x < region);
+        }
 
         if (mQsExpanded) {
             return onHeader || (mScrollView.isScrolledToBottom() && yDiff < 0) && isInQsArea(x, y);
         } else {
-            return onHeader || showQsOverride;
+            return onHeader || (showQsOverride && mStatusBarState == StatusBarState.SHADE);
         }
     }
 
@@ -1874,5 +1941,60 @@ public class NotificationPanelView extends PanelView implements
 
     public void onScreenTurnedOn() {
         mKeyguardStatusView.refreshTime();
+    }
+
+    class SettingsObserver extends ContentObserver {
+        SettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        void observe() {
+            ContentResolver resolver = mContext.getContentResolver();
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.STATUS_BAR_QUICK_QS_PULLDOWN),
+                    false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.DOUBLE_TAP_SLEEP_GESTURE),
+                    false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.Secure.getUriFor(
+                    Settings.Secure.STATUS_BAR_LOCKED_ON_SECURE_KEYGUARD),
+                    false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.QS_SMART_PULLDOWN),
+                    false, this, UserHandle.USER_ALL);
+            update();
+        }
+
+        void unobserve() {
+            ContentResolver resolver = mContext.getContentResolver();
+            resolver.unregisterContentObserver(this);
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            update();
+        }
+
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            update();
+        }
+
+        public void update() {
+            ContentResolver resolver = mContext.getContentResolver();
+
+            mOneFingerQuickSettingsInterceptMode = Settings.System.getIntForUser(
+                    resolver, Settings.System.STATUS_BAR_QUICK_QS_PULLDOWN,
+                    ONE_FINGER_QS_INTERCEPT_END, UserHandle.USER_CURRENT);
+            mDoubleTapToSleepEnabled = Settings.System.getIntForUser(
+                    resolver, Settings.System.DOUBLE_TAP_SLEEP_GESTURE, 1,
+                    UserHandle.USER_CURRENT) == 1;
+            mStatusBarLockedOnSecureKeyguard = Settings.Secure.getIntForUser(
+                    resolver, Settings.Secure.STATUS_BAR_LOCKED_ON_SECURE_KEYGUARD, 1,
+                    UserHandle.USER_CURRENT) == 1;
+            mQsSmartPullDown = Settings.System.getIntForUser(
+                    resolver, Settings.System.QS_SMART_PULLDOWN, 0,
+                    UserHandle.USER_CURRENT);
+        }
     }
 }

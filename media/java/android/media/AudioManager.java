@@ -27,6 +27,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.media.RemoteController.OnClientUpdateListener;
 import android.media.audiopolicy.AudioPolicy;
 import android.media.audiopolicy.AudioPolicyConfig;
@@ -47,6 +48,9 @@ import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.Surface;
+import android.view.View;
+import android.view.WindowManager;
 
 import java.util.HashMap;
 import java.util.ArrayList;
@@ -71,6 +75,8 @@ public class AudioManager {
     private final ProfileManager mProfileManager;
     AudioPortEventHandler mAudioPortEventHandler;
     private static ArrayList<MediaPlayerInfo> mMediaPlayers;
+    private final WindowManager mWindowManager;
+
     /**
      * Broadcast intent, a hint for applications that audio is about to become
      * 'noisy' due to a change in audio outputs. For example, this intent may
@@ -624,7 +630,7 @@ public class AudioManager {
                 com.android.internal.R.bool.config_useFixedVolume);
         mMediaPlayers = new ArrayList<MediaPlayerInfo>(1);
         mProfileManager = (ProfileManager) context.getSystemService(Context.PROFILE_SERVICE);
-
+        mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
     }
 
     private static IAudioService getService()
@@ -703,21 +709,26 @@ public class AudioManager {
                  * Adjust the volume in on key down since it is more
                  * responsive to the user.
                  */
+                Configuration config = mContext.getResources().getConfiguration();
+                int direction;
+                int rotation = mWindowManager.getDefaultDisplay().getRotation();
+                if ((rotation == Surface.ROTATION_90
+                        || rotation == Surface.ROTATION_180)
+                        && config.getLayoutDirection() == View.LAYOUT_DIRECTION_LTR) {
+                    direction = keyCode == KeyEvent.KEYCODE_VOLUME_UP
+                            ? ADJUST_LOWER
+                            : ADJUST_RAISE;
+                } else {
+                    direction = keyCode == KeyEvent.KEYCODE_VOLUME_UP
+                            ? ADJUST_RAISE
+                            : ADJUST_LOWER;
+                }
                 int flags = FLAG_SHOW_UI | FLAG_VIBRATE;
 
                 if (mUseMasterVolume) {
-                    adjustMasterVolume(
-                            keyCode == KeyEvent.KEYCODE_VOLUME_UP
-                                    ? ADJUST_RAISE
-                                    : ADJUST_LOWER,
-                            flags);
+                    adjustMasterVolume(direction, flags);
                 } else {
-                    adjustSuggestedStreamVolume(
-                            keyCode == KeyEvent.KEYCODE_VOLUME_UP
-                                    ? ADJUST_RAISE
-                                    : ADJUST_LOWER,
-                            stream,
-                            flags);
+                    adjustSuggestedStreamVolume(direction, stream, flags);
                 }
                 break;
             case KeyEvent.KEYCODE_VOLUME_MUTE:

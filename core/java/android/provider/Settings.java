@@ -2064,6 +2064,19 @@ public final class Settings {
          */
         public static final String BUTTON_BACKLIGHT_TIMEOUT = "button_backlight_timeout";
 
+        /** Whether to allow one finger quick settings expansion on the right side of the statusbar.
+         *
+         * @hide
+         */
+        public static final String STATUS_BAR_QUICK_QS_PULLDOWN = "status_bar_quick_qs_pulldown";
+
+        /**
+         * Quick Settings Smart Pulldown
+         *
+         * @hide
+         */
+        public static final String QS_SMART_PULLDOWN = "qs_smart_pulldown";
+
         /**
          * Control whether the process CPU usage meter should be shown.
          *
@@ -3148,59 +3161,59 @@ public final class Settings {
         public static final String NETWORK_TRAFFIC_AUTOHIDE = "network_traffic_autohide";
 
        /**
-	* Show or hide clock
-	* 0 - hide
-	* 1 - show (default)
-	* @hide
-	*/
+        * Show or hide clock
+        * 0 - hide
+        * 1 - show (default)
+        * @hide
+        */
         public static final String STATUS_BAR_CLOCK = "status_bar_clock";
 
        /**
-	* AM/PM Style for clock options
-	* 0 - Normal AM/PM
-	* 1 - Small AM/PM
-	* 2 - No AM/PM
-	* @hide
-	*/
+        * AM/PM Style for clock options
+        * 0 - Normal AM/PM
+        * 1 - Small AM/PM
+        * 2 - No AM/PM
+        * @hide
+        */
         public static final String STATUSBAR_CLOCK_AM_PM_STYLE = "statusbar_clock_am_pm_style";
 
        /**
-	* Style of clock
-	* 0 - Hide Clock
-	* 1 - Right Clock
-	* 2 - Center Clock
-	* @hide
-	*/
+        * Style of clock
+        * 0 - Hide Clock
+        * 1 - Right Clock
+        * 2 - Center Clock
+        * @hide
+        */
         public static final String STATUSBAR_CLOCK_STYLE = "statusbar_clock_style";
 
        /**
-	* Setting for clock color
-	* @hide
-	*/
+        * Setting for clock color
+        * @hide
+        */
         public static final String STATUSBAR_CLOCK_COLOR = "statusbar_clock_color";
 
        /**
-	* @hide
-	* Shows custom date before clock time
-	* 0 - No Date
-	* 1 - Small Date
-	* 2 - Normal Date
-	*/
+        * @hide
+        * Shows custom date before clock time
+        * 0 - No Date
+        * 1 - Small Date
+        * 2 - Normal Date
+        */
         public static final String STATUSBAR_CLOCK_DATE_DISPLAY = "statusbar_clock_date_display";
 
        /**
-	* @hide
-	* Sets the date string style
-	* 0 - Regular style
-	* 1 - Lowercase
-	* 2 - Uppercase
-	*/
+        * @hide
+        * Sets the date string style
+        * 0 - Regular style
+        * 1 - Lowercase
+        * 2 - Uppercase
+        */
         public static final String STATUSBAR_CLOCK_DATE_STYLE = "statusbar_clock_date_style";
 
        /**
-	* @hide
-	* Stores the java DateFormat string for the date
-	*/
+        * @hide
+        * Stores the java DateFormat string for the date
+        */
         public static final String STATUSBAR_CLOCK_DATE_FORMAT = "statusbar_clock_date_format";
 
         /**
@@ -3209,7 +3222,16 @@ public final class Settings {
          */
         public static final String NETWORK_TRAFFIC_AUTOHIDE_THRESHOLD = "network_traffic_autohide_threshold";
 
-	/**
+        /**
+         * MediaScanner behavior on boot.
+         * 0 = enabled
+         * 1 = ask (notification)
+         * 2 = disabled
+         * @hide
+         */
+         public static final String MEDIA_SCANNER_ON_BOOT = "media_scanner_on_boot";
+
+        /**
          * Whether to prevent loud volume levels when headset is first plugged in.
          * @hide
          */
@@ -3228,6 +3250,11 @@ public final class Settings {
          */
         public static final String MUTE_ANNOYING_NOTIFICATIONS_THRESHOLD =
                 "mute_annoying_notifications_threshold";
+
+        /**
+         * Boolean value on whether to show weather in the statusbar
+         */
+        public static final String STATUS_BAR_SHOW_WEATHER = "status_bar_show_weather";
 
         /**
           * Volume keys control cursor in text fields (default is 0)
@@ -3269,7 +3296,7 @@ public final class Settings {
         public static final String VOLUME_WAKE_SCREEN = "volume_wake_screen";
 
         /**
-         *  Enable statusbar double tap gesture on to put device to sleep
+         * Enable statusbar double tap gesture on to put device to sleep
          * @hide
          */
         public static final String DOUBLE_TAP_SLEEP_GESTURE = "double_tap_sleep_gesture";
@@ -5415,6 +5442,13 @@ public final class Settings {
         public static final String SMS_DEFAULT_APPLICATION = "sms_default_application";
 
         /**
+         * Whether user is allowed to pull down quick settings on secure keyguard.
+         * @hide
+         */
+        public static final String STATUS_BAR_LOCKED_ON_SECURE_KEYGUARD
+                = "status_bar_locked_on_secure_keyguard";
+
+        /**
          * Whether to include options in power menu for rebooting into recovery and bootloader
          * @hide
          */
@@ -5522,6 +5556,14 @@ public final class Settings {
         public static final String PRIVACY_GUARD_DEFAULT = "privacy_guard_default";
 
         /**
+         * Whether to display a menu containing 'Wipe data', 'Force close' and other options
+         * in the notification area and in the recent app list
+         * @hide
+         */
+        public static final String DEVELOPMENT_SHORTCUT = "development_shortcut";
+
+
+        /**
          * This are the settings to be backed up.
          *
          * NOTE: Settings are backed up and restored in the order they appear
@@ -5573,7 +5615,13 @@ public final class Settings {
             UI_NIGHT_MODE,
             SLEEP_TIMEOUT,
             PRIVACY_GUARD_DEFAULT,
+<<<<<<< HEAD
             ADVANCED_REBOOT
+            STATUS_BAR_LOCKED_ON_SECURE_KEYGUARD
+=======
+            ADVANCED_REBOOT,
+            DEVELOPMENT_SHORTCUT
+>>>>>>> 552943c... Recents: Port "Development shortcut" (2/2)
         };
 
         /**
