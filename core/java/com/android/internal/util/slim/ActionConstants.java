@@ -14,9 +14,9 @@
 * limitations under the License.
 */
 
-package com.android.internal.util.liquid;
+package com.android.internal.util.slim;
 
-public class SlimActionConstants {
+public class ActionConstants {
 
     // key must fit with the values arrays from Settings to use
     // SlimActions.java actions
