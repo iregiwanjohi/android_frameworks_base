@@ -3794,14 +3794,6 @@ public final class Settings {
          */
         public static final String PIE_SIZE = "pie_size";
 
-       /**
-         * Allows to disable weather in locskcreen
-         * 1 = use system default (show)
-         * 0 = hide Weather
-         * @hide
-         */
-        public static final String LOCKSCREEN_WEATHER = "lockscreen_weather";
-
         /**
          * Pie button color
          * @hide
