@@ -1606,6 +1606,9 @@ final class ActivityStack {
 
         if (DEBUG_SWITCH) Slog.v(TAG, "Resuming " + next);
 
+        // Some activities may want to alter the system power management
+        mStackSupervisor.mPm.activityResumed(next.intent);
+
         // If we are currently pausing an activity, then don't do anything
         // until that is done.
         if (!mStackSupervisor.allPausedActivitiesComplete()) {
@@ -1736,6 +1739,9 @@ final class ActivityStack {
                     mWindowManager.prepareAppTransition(prev.task == next.task
                             ? AppTransition.TRANSIT_ACTIVITY_CLOSE
                             : AppTransition.TRANSIT_TASK_CLOSE, false);
+                    if (prev.task != next.task) {
+                        mStackSupervisor.mPm.cpuBoost(2000 * 1000);
+                    }
                 }
                 mWindowManager.setAppWillBeHidden(prev.appToken);
                 mWindowManager.setAppVisibility(prev.appToken, false);
@@ -1750,6 +1756,9 @@ final class ActivityStack {
                             : next.mLaunchTaskBehind
                                     ? AppTransition.TRANSIT_TASK_OPEN_BEHIND
                                     : AppTransition.TRANSIT_TASK_OPEN, false);
+                    if (prev.task != next.task) {
+                        mStackSupervisor.mPm.cpuBoost(2000 * 1000);
+                    }
                 }
             }
             if (false) {
@@ -2012,7 +2021,7 @@ final class ActivityStack {
                     ActivityManagerService.POST_PRIVACY_NOTIFICATION_MSG, next);
             msg.sendToTarget();
             mStackSupervisor.mPrivacyGuardPackageName = next.packageName;
-        }
+	    }
     }
 
     private final void updateHeadsUpState(ActivityRecord next) {
